@@ -1,0 +1,61 @@
+﻿@page "/loan"
+@using FutureFinans.Data
+@using FutureFinans.Models
+@inject ApplicationDbContext Db
+
+<h3>Apply for a Loan</h3>
+
+<EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Name:</label>
+        <InputText @bind-Value="loan.ApplicantName" />
+    </div>
+
+    <div>
+        <label>Monthly Income:</label>
+        <InputNumber @bind-Value="loan.MonthlyIncome" />
+    </div>
+
+    <div>
+        <label>Loan Amount:</label>
+        <InputNumber @bind-Value="loan.LoanAmount" />
+    </div>
+
+    <div>
+        <label>Years:</label>
+        <InputNumber @bind-Value="loan.Years" />
+    </div>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(result))
+{
+    <h4>Result: @result</h4>
+}
+
+@code {
+    private LoanApplication loan = new();
+    private string result;
+
+    private async Task HandleValidSubmit()
+    {
+        // Enkelt beslutslogik
+        if (loan.MonthlyIncome > 2000 && loan.LoanAmount < loan.MonthlyIncome * 10)
+        {
+            loan.Status = "Approved";
+            result = "✅ Loan Approved!";
+        }
+        else
+        {
+            loan.Status = "Rejected";
+            result = "❌ Loan Rejected!";
+        }
+
+        Db.LoanApplications.Add(loan);
+        await Db.SaveChangesAsync();
+    }
+}
