@@ -1,3 +1,27 @@
-﻿<NavLink href="/loan" class="nav-link">
+﻿@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+
+<NavLink href="/loan" class="nav-link">
     <span class="oi oi-list-rich" aria-hidden="true"></span> Loan Application
+
+    
 </NavLink>
+<div class="lang-switcher">
+    <button @onclick='() => SetCulture("en")'>English</button>
+    <button @onclick='() => SetCulture("sv")'>Svenska</button>
+
+
+</div>
+@code {
+    private async Task SetCulture(string culture)
+    {
+        // Spara språket i localStorage
+        await JS.InvokeVoidAsync("localStorage.setItem", "culture", culture);
+        // Ladda om sidan för att ändra kulturen
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+}

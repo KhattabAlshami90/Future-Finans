@@ -1,61 +1,81 @@
 ﻿@page "/loan"
-@using FutureFinans.Data
 @using FutureFinans.Models
-@inject ApplicationDbContext Db
+@using MudBlazor
 
-<h3>Apply for a Loan</h3>
 
-<EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<MudPaper Class="pa-6 mx-auto mt-6" Style="max-width:600px;">
+    <MudText Typo="Typo.h4" GutterBottom="true">💰 Ansök om lån</MudText>
+    <EditForm Model="loanApp" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <div>
-        <label>Name:</label>
-        <InputText @bind-Value="loan.ApplicantName" />
-    </div>
+        <!-- Namn -->
+        <MudTextField @bind-Value="loanApp.ApplicantName" Label="👤 Namn" Variant="Variant.Outlined" Required="true" />
 
-    <div>
-        <label>Monthly Income:</label>
-        <InputNumber @bind-Value="loan.MonthlyIncome" />
-    </div>
+        <!-- Lånebelopp -->
+        <MudSlider @bind-Value="loanApp.LoanAmount" Min="1000" Max="1000000" Step="1000" Label="💵 Lånebelopp" TickInterval="100000" />
 
-    <div>
-        <label>Loan Amount:</label>
-        <InputNumber @bind-Value="loan.LoanAmount" />
-    </div>
+        <!-- Lånetid -->
+        <MudSlider @bind-Value="loanApp.LoanYears" Min="1" Max="30" Step="1" Label="📅 Lånetid (år)" />
 
-    <div>
-        <label>Years:</label>
-        <InputNumber @bind-Value="loan.Years" />
-    </div>
+        <!-- Lånesyfte -->
+        <MudSelect T="string" Label="Vad är lånesyftet?" @bind-Value="loanApp.LoanPurpose">
+            <MudSelectItem Value="@("Samla lån")">Samla lån</MudSelectItem>
+            <MudSelectItem Value="@("Nytt lån")">Nytt lån</MudSelectItem>
+            <MudSelectItem Value="@("Renovering")">Renovering</MudSelectItem>
+            <MudSelectItem Value="@("Fordon")">Fordon</MudSelectItem>
+            <MudSelectItem Value="@("Hälsa")">Hälsa</MudSelectItem>
+            <MudSelectItem Value="@("Övrigt")">Övrigt</MudSelectItem>
+        </MudSelect>
 
-    <button type="submit">Submit</button>
-</EditForm>
 
-@if (!string.IsNullOrEmpty(result))
-{
-    <h4>Result: @result</h4>
-}
+
+        <!-- Civilstånd -->
+        <MudSelect @bind-Value="loanApp.MaritalStatus" Label="❤️ Civilstånd" Required="true">
+            <MudSelectItem Value="@("Gift")">Gift</MudSelectItem>
+            <MudSelectItem Value="@("Sambo")">Sambo</MudSelectItem>
+            <MudSelectItem Value="@("Singel / Ogift")">Singel/Ogift</MudSelectItem>
+            <MudSelectItem Value="@("Skild")">Skild</MudSelectItem>
+        </MudSelect>
+
+        <!-- Barn -->
+        <MudNumericField @bind-Value="loanApp.ChildrenUnder21" Label="👶 Antal barn under 21 år" Variant="Variant.Outlined" />
+
+        <!-- Boendeform -->
+        <MudSelect T="string" @bind-Value="loanApp.HousingType" Label="🏠 Boendeform" Required="true">
+            <MudSelectItem Value="@("Villa / Radhus")">Villa/Radhus</MudSelectItem>
+            <MudSelectItem Value="@("Bostadsrätt")">Bostadsrätt</MudSelectItem>
+            <MudSelectItem Value="@("Hyresrätt")">Hyresrätt</MudSelectItem>
+            <MudSelectItem Value="@("Inneboende")">Inneboende</MudSelectItem>
+        </MudSelect>
+
+
+        <!-- Månadslön -->
+        <MudNumericField @bind-Value="loanApp.MonthlyIncome" Label="💼 Månadslön (kr)" Variant="Variant.Outlined" />
+
+        <!-- Skicka -->
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" ButtonType="ButtonType.Submit">
+            📨 Skicka ansökan
+        </MudButton>
+    </EditForm>
+
+    @if (submitted)
+    {
+        <MudPaper Class="pa-4 mt-4" Style="background-color:#e6f7ff;">
+            <MudText Typo="Typo.h6">✅ Tack @loanApp.ApplicantName!</MudText>
+            <MudText>Din ansökan är mottagen. Vi återkommer snart med besked.</MudText>
+        </MudPaper>
+    }
+</MudPaper>
 
 @code {
-    private LoanApplication loan = new();
-    private string result;
+    private LoanApplication loanApp = new LoanApplication();
+    private bool submitted = false;
 
-    private async Task HandleValidSubmit()
+    private void HandleSubmit()
     {
-        // Enkelt beslutslogik
-        if (loan.MonthlyIncome > 2000 && loan.LoanAmount < loan.MonthlyIncome * 10)
-        {
-            loan.Status = "Approved";
-            result = "✅ Loan Approved!";
-        }
-        else
-        {
-            loan.Status = "Rejected";
-            result = "❌ Loan Rejected!";
-        }
-
-        Db.LoanApplications.Add(loan);
-        await Db.SaveChangesAsync();
+        submitted = true;
+        loanApp.Status = "Pending";
+        // Här kan du spara till databasen via DbContext
     }
 }

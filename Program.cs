@@ -1,6 +1,9 @@
-using Future_Finans.Components;
+﻿using Future_Finans.Components;
 using FutureFinans.Data;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
+using System.Globalization;
 
 namespace Future_Finans
 {
@@ -10,31 +13,54 @@ namespace Future_Finans
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Add services
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+            builder.Services.AddHttpContextAccessor();
+
+            // MudBlazor Services
+            builder.Services.AddMudServices();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Localization
+            var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("sv") };
+            var localizationOptions = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("en"),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            };
+            app.UseRequestLocalization(localizationOptions);
+
+            // Configure middleware
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
+            app.UseRouting();
+
+            // Optional: if you have authentication/authorization
+            // app.UseAuthentication();
+            // app.UseAuthorization();
+
+            // Antiforgery
             app.UseAntiforgery();
 
-            app.MapStaticAssets();
+            // Map Razor Components
             app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+               .AddInteractiveServerRenderMode();
 
             app.Run();
         }
