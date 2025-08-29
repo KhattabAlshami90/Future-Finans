@@ -4,6 +4,7 @@ namespace FutureFinans.Models
 {
     public class LoanApplication
     {
+
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Namn är obligatoriskt")]

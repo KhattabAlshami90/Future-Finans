@@ -1,5 +1,6 @@
 ﻿using Future_Finans.Components;
 using FutureFinans.Data;
+using FutureFinans.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -16,6 +17,10 @@ namespace Future_Finans
             // Add services
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+
+            builder.Services.AddSingleton<LoanService>();
+
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

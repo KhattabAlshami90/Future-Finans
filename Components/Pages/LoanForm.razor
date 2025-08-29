@@ -1,81 +1,142 @@
 ﻿@page "/loan"
 @using FutureFinans.Models
-@using MudBlazor
+@using FutureFinans.Services
+@inject LoanService loanService
 
-
-<MudPaper Class="pa-6 mx-auto mt-6" Style="max-width:600px;">
-    <MudText Typo="Typo.h4" GutterBottom="true">💰 Ansök om lån</MudText>
-    <EditForm Model="loanApp" OnValidSubmit="HandleSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <!-- Namn -->
-        <MudTextField @bind-Value="loanApp.ApplicantName" Label="👤 Namn" Variant="Variant.Outlined" Required="true" />
-
-        <!-- Lånebelopp -->
-        <MudSlider @bind-Value="loanApp.LoanAmount" Min="1000" Max="1000000" Step="1000" Label="💵 Lånebelopp" TickInterval="100000" />
-
-        <!-- Lånetid -->
-        <MudSlider @bind-Value="loanApp.LoanYears" Min="1" Max="30" Step="1" Label="📅 Lånetid (år)" />
-
-        <!-- Lånesyfte -->
-        <MudSelect T="string" Label="Vad är lånesyftet?" @bind-Value="loanApp.LoanPurpose">
-            <MudSelectItem Value="@("Samla lån")">Samla lån</MudSelectItem>
-            <MudSelectItem Value="@("Nytt lån")">Nytt lån</MudSelectItem>
-            <MudSelectItem Value="@("Renovering")">Renovering</MudSelectItem>
-            <MudSelectItem Value="@("Fordon")">Fordon</MudSelectItem>
-            <MudSelectItem Value="@("Hälsa")">Hälsa</MudSelectItem>
-            <MudSelectItem Value="@("Övrigt")">Övrigt</MudSelectItem>
-        </MudSelect>
-
-
-
-        <!-- Civilstånd -->
-        <MudSelect @bind-Value="loanApp.MaritalStatus" Label="❤️ Civilstånd" Required="true">
-            <MudSelectItem Value="@("Gift")">Gift</MudSelectItem>
-            <MudSelectItem Value="@("Sambo")">Sambo</MudSelectItem>
-            <MudSelectItem Value="@("Singel / Ogift")">Singel/Ogift</MudSelectItem>
-            <MudSelectItem Value="@("Skild")">Skild</MudSelectItem>
-        </MudSelect>
-
-        <!-- Barn -->
-        <MudNumericField @bind-Value="loanApp.ChildrenUnder21" Label="👶 Antal barn under 21 år" Variant="Variant.Outlined" />
-
-        <!-- Boendeform -->
-        <MudSelect T="string" @bind-Value="loanApp.HousingType" Label="🏠 Boendeform" Required="true">
-            <MudSelectItem Value="@("Villa / Radhus")">Villa/Radhus</MudSelectItem>
-            <MudSelectItem Value="@("Bostadsrätt")">Bostadsrätt</MudSelectItem>
-            <MudSelectItem Value="@("Hyresrätt")">Hyresrätt</MudSelectItem>
-            <MudSelectItem Value="@("Inneboende")">Inneboende</MudSelectItem>
-        </MudSelect>
-
-
-        <!-- Månadslön -->
-        <MudNumericField @bind-Value="loanApp.MonthlyIncome" Label="💼 Månadslön (kr)" Variant="Variant.Outlined" />
-
-        <!-- Skicka -->
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" ButtonType="ButtonType.Submit">
-            📨 Skicka ansökan
-        </MudButton>
-    </EditForm>
-
-    @if (submitted)
-    {
-        <MudPaper Class="pa-4 mt-4" Style="background-color:#e6f7ff;">
-            <MudText Typo="Typo.h6">✅ Tack @loanApp.ApplicantName!</MudText>
-            <MudText>Din ansökan är mottagen. Vi återkommer snart med besked.</MudText>
-        </MudPaper>
+<style>
+    .loan-form-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
     }
-</MudPaper>
+
+    .loan-form-card {
+        max-width: 800px;
+        width: 100%;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        background-color: #f8f9fa;
+    }
+
+        .loan-form-card h3 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .loan-form-card label {
+            font-weight: bold;
+        }
+
+        .loan-form-card input, .loan-form-card select {
+            height: 50px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
+
+        .loan-form-card button {
+            height: 55px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+        }
+
+    .result-box {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #e6f7ff;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="loan-form-container">
+    <div class="loan-form-card">
+        <h3>💰 Ansök om lån</h3>
+
+        <EditForm Model="loanApp" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <!-- Personlig information -->
+            <label>👤 Fullständigt namn</label>
+            <InputText @bind-Value="loanApp.ApplicantName" class="form-control" />
+
+            <label>❤️ Civilstånd</label>
+            <InputSelect @bind-Value="loanApp.MaritalStatus" class="form-control">
+                <option value="">Välj...</option>
+                <option value="Gift">Gift</option>
+                <option value="Sambo">Sambo</option>
+                <option value="Singel / Ogift">Singel/Ogift</option>
+                <option value="Skild">Skild</option>
+            </InputSelect>
+
+            <label>👶 Antal barn under 21 år</label>
+            <InputNumber @bind-Value="loanApp.ChildrenUnder21" class="form-control" />
+
+            <!-- Boendeinformation -->
+            <label>🏠 Boendeform</label>
+            <InputSelect @bind-Value="loanApp.HousingType" class="form-control">
+                <option value="">Välj...</option>
+                <option value="Villa / Radhus">Villa/Radhus</option>
+                <option value="Bostadsrätt">Bostadsrätt</option>
+                <option value="Hyresrätt">Hyresrätt</option>
+                <option value="Inneboende">Inneboende</option>
+            </InputSelect>
+
+            <!-- Ekonomisk information -->
+            <label>💼 Månadslön (kr)</label>
+            <InputNumber @bind-Value="loanApp.MonthlyIncome" class="form-control" />
+
+            <!-- Lånedetaljer -->
+            <label>💵 Lånebelopp (kr)</label>
+            <InputNumber @bind-Value="loanApp.LoanAmount" class="form-control" min="1000" max="1000000" step="1000" />
+
+            <label>📅 Lånetid (år)</label>
+            <InputNumber @bind-Value="loanApp.LoanYears" class="form-control" min="1" max="30" />
+
+            <label>Lånesyfte</label>
+            <InputSelect @bind-Value="loanApp.LoanPurpose" class="form-control">
+                <option value="">Välj...</option>
+                <option value="Samla lån">Samla lån</option>
+                <option value="Nytt lån">Nytt lån</option>
+                <option value="Renovering">Renovering</option>
+                <option value="Fordon">Fordon</option>
+                <option value="Hälsa">Hälsa</option>
+                <option value="Övrigt">Övrigt</option>
+            </InputSelect>
+
+            <button type="submit" class="btn btn-primary w-100 mt-3">📨 Skicka ansökan</button>
+        </EditForm>
+
+        @if (submitted)
+        {
+            <div class="result-box">
+                <p>@resultMessage</p>
+                <p>Status: <b>@loanApp.Status</b></p>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
     private LoanApplication loanApp = new LoanApplication();
     private bool submitted = false;
+    private string resultMessage;
 
     private void HandleSubmit()
     {
+        // Utvärdera låneansökan via backend
+        loanApp = loanService.EvaluateLoan(loanApp);
+
         submitted = true;
-        loanApp.Status = "Pending";
-        // Här kan du spara till databasen via DbContext
+
+        resultMessage = loanApp.Status == "Approved"
+            ? "✅ Din ansökan är godkänd!"
+            : $"❌ Din ansökan har avslagits: {loanApp.LoanPurpose}";
     }
 }
+knm
