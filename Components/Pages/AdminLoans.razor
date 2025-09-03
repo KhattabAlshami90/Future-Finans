@@ -1,0 +1,191 @@
+﻿@page "/admin"
+@using FutureFinans.Models
+@using FutureFinans.Services
+@inject LoanService loanService
+
+<style>
+    .admin-container {
+        padding: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #6a11cb;
+        color: white;
+        font-weight: bold;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .status-approved {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-rejected {
+        color: red;
+        font-weight: bold;
+    }
+
+    .status-pending {
+        color: orange;
+        font-weight: bold;
+    }
+
+    button {
+        margin-right: 5px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-approve {
+        background-color: #28a745;
+        color: white;
+    }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+    .btn-reject {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .btn-reject:hover {
+            background-color: #c82333;
+        }
+
+    .btn-delete {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background-color: #5a6268;
+        }
+</style>
+
+<div class="admin-container">
+    <h2>📋 Alla låneansökningar</h2>
+
+    @if (loans == null)
+    {
+        <p>Laddar ansökningar...</p>
+    }
+    else if (loans.Count == 0)
+    {
+        <p>Inga ansökningar ännu.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Namn</th>
+                    <th>Civilstånd</th>
+                    <th>Boendeform</th>
+                    <th>Månadslön</th>
+                    <th>Lånebelopp</th>
+                    <th>Lånetid (år)</th>
+                    <th>Lånesyfte</th>
+                    <th>Status</th>
+                    <th>Åtgärder</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in loans)
+                {
+                    <tr>
+                        <td>@loan.ApplicantName</td>
+                        <td>@loan.MaritalStatus</td>
+                        <td>@loan.HousingType</td>
+                        <td>@loan.MonthlyIncome.ToString("N0") kr</td>
+                        <td>@loan.LoanAmount.ToString("N0") kr</td>
+                        <td>@loan.LoanYears</td>
+                        <td>@loan.LoanPurpose</td>
+                        <td class="@GetStatusClass(loan.Status)">@loan.Status</td>
+                        <td>
+                            <select class="status-select" @onchange="(e) => ChangeStatus(loan, e.Value.ToString())">
+                                <option value="Pending" selected="@((loan.Status == "Pending") ? "selected" : null)">⏳ Pending</option>
+                                <option value="Approved" selected="@((loan.Status == "Approved") ? "selected" : null)">✅ Approved</option>
+                                <option value="Rejected" selected="@((loan.Status == "Rejected") ? "selected" : null)">❌ Rejected</option>
+                            </select>
+                            <button class="btn-delete" @onclick="() => DeleteLoan(loan)">🗑 Ta bort</button>
+
+                            
+
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<LoanApplication> loans;
+
+    protected override void OnInitialized()
+    {
+        LoadLoans();
+    }
+
+    private void LoadLoans()
+    {
+        loans = loanService.GetAllLoans();
+    }
+
+    private void ChangeStatus(LoanApplication loan, string status)
+    {
+        loan.Status = status;
+        loanService.UpdateLoan(loan);
+        LoadLoans();
+    }
+
+    private void DeleteLoan(LoanApplication loan)
+    {
+        loanService.DeleteLoan(loan.Id);
+        LoadLoans();
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Approved" => "status-approved",
+            "Rejected" => "status-rejected",
+            "Pending" => "status-pending",
+            _ => ""
+        };
+    }
+}

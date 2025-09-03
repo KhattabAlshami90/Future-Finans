@@ -19,7 +19,7 @@ namespace Future_Finans
                 .AddInteractiveServerComponents();
 
 
-            builder.Services.AddSingleton<LoanService>();
+
 
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -28,6 +28,9 @@ namespace Future_Finans
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<LoanService>();
+
+
 
             // MudBlazor Services
             builder.Services.AddMudServices();

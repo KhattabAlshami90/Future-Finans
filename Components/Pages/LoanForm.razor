@@ -4,52 +4,89 @@
 @inject LoanService loanService
 
 <style>
+    body {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        min-height: 100vh;
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
     .loan-form-container {
         display: flex;
         justify-content: center;
-        margin-top: 50px;
+        align-items: center;
+        min-height: 100vh;
+        padding: 30px;
     }
 
     .loan-form-card {
-        max-width: 800px;
+        max-width: 900px;
         width: 100%;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        background-color: #f8f9fa;
+        padding: 60px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        background-color: #ffffff;
+        animation: fadeIn 0.8s ease-in-out;
     }
 
         .loan-form-card h3 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #333;
         }
 
         .loan-form-card label {
-            font-weight: bold;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+            color: #444;
+            font-size: 1.15rem;
         }
 
-        .loan-form-card input, .loan-form-card select {
-            height: 50px;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            padding: 0 10px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
+        .loan-form-card input,
+        .loan-form-card select {
+            height: 60px;
+            font-size: 1.2rem;
+            margin-bottom: 22px;
+            padding: 0 20px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            transition: all 0.2s ease-in-out;
         }
+
+            .loan-form-card input:focus,
+            .loan-form-card select:focus {
+                border-color: #2575fc;
+                box-shadow: 0 0 10px rgba(37, 117, 252, 0.4);
+                outline: none;
+            }
 
         .loan-form-card button {
-            height: 55px;
-            font-size: 1.2rem;
-            border-radius: 10px;
+            height: 65px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease-in-out;
         }
+
+            .loan-form-card button:hover {
+                transform: scale(1.03);
+                box-shadow: 0 8px 25px rgba(37, 117, 252, 0.4);
+            }
 
     .result-box {
         margin-top: 30px;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 30px;
+        border-radius: 14px;
         background-color: #e6f7ff;
         text-align: center;
-        font-size: 1.1rem;
+        font-size: 1.25rem;
+        animation: fadeInUp 0.6s ease-in-out;
     }
 </style>
 
@@ -57,17 +94,17 @@
     <div class="loan-form-card">
         <h3>💰 Ansök om lån</h3>
 
-        <EditForm Model="loanApp" OnValidSubmit="HandleSubmit">
+        <!-- FIX: lagt till FormName -->
+        <EditForm Model="@loanApp" OnValidSubmit="@HandleSubmit" FormName="LoanApplicationForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
-            <!-- Personlig information -->
             <label>👤 Fullständigt namn</label>
-            <InputText @bind-Value="loanApp.ApplicantName" class="form-control" />
+            <InputText @bind-Value="loanApp.ApplicantName" class="form-control" placeholder="Skriv ditt namn" Required  />
 
             <label>❤️ Civilstånd</label>
             <InputSelect @bind-Value="loanApp.MaritalStatus" class="form-control">
-                <option value="">Välj...</option>
+                <option value="">-- Välj --</option>
                 <option value="Gift">Gift</option>
                 <option value="Sambo">Sambo</option>
                 <option value="Singel / Ogift">Singel/Ogift</option>
@@ -77,30 +114,27 @@
             <label>👶 Antal barn under 21 år</label>
             <InputNumber @bind-Value="loanApp.ChildrenUnder21" class="form-control" />
 
-            <!-- Boendeinformation -->
             <label>🏠 Boendeform</label>
             <InputSelect @bind-Value="loanApp.HousingType" class="form-control">
-                <option value="">Välj...</option>
+                <option value="">-- Välj --</option>
                 <option value="Villa / Radhus">Villa/Radhus</option>
                 <option value="Bostadsrätt">Bostadsrätt</option>
                 <option value="Hyresrätt">Hyresrätt</option>
                 <option value="Inneboende">Inneboende</option>
             </InputSelect>
 
-            <!-- Ekonomisk information -->
             <label>💼 Månadslön (kr)</label>
             <InputNumber @bind-Value="loanApp.MonthlyIncome" class="form-control" />
 
-            <!-- Lånedetaljer -->
             <label>💵 Lånebelopp (kr)</label>
-            <InputNumber @bind-Value="loanApp.LoanAmount" class="form-control" min="1000" max="1000000" step="1000" />
+            <InputNumber @bind-Value="loanApp.LoanAmount" class="form-control" />
 
             <label>📅 Lånetid (år)</label>
-            <InputNumber @bind-Value="loanApp.LoanYears" class="form-control" min="1" max="30" />
+            <InputNumber @bind-Value="loanApp.LoanYears" class="form-control" />
 
-            <label>Lånesyfte</label>
+            <label>🎯 Lånesyfte</label>
             <InputSelect @bind-Value="loanApp.LoanPurpose" class="form-control">
-                <option value="">Välj...</option>
+                <option value="">-- Välj --</option>
                 <option value="Samla lån">Samla lån</option>
                 <option value="Nytt lån">Nytt lån</option>
                 <option value="Renovering">Renovering</option>
@@ -119,6 +153,7 @@
                 <p>Status: <b>@loanApp.Status</b></p>
             </div>
         }
+
     </div>
 </div>
 
@@ -129,14 +164,11 @@
 
     private void HandleSubmit()
     {
-        // Utvärdera låneansökan via backend
         loanApp = loanService.EvaluateLoan(loanApp);
 
         submitted = true;
-
         resultMessage = loanApp.Status == "Approved"
             ? "✅ Din ansökan är godkänd!"
             : $"❌ Din ansökan har avslagits: {loanApp.LoanPurpose}";
     }
 }
-knm
